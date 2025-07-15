@@ -26,8 +26,11 @@ app.use("/api/auth", authRoutes);
 app.use("/api/properties", propertyRoutes);
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
-// ✅ Connect to DB once (works on Vercel & local)
-connectDB().catch((err) => console.error("DB connection error:", err));
+
+console.log("NODE_ENV:", process.env.NODE_ENV);
+console.log("MONGO_URI present?", !!process.env.MONGO_URI);
+
+connectDB().catch((err) => console.error("❌ DB connection error at startup:", err));
 
 // ✅ Local dev only
 if (process.env.NODE_ENV !== "production") {

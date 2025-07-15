@@ -1,11 +1,17 @@
 import mongoose from "mongoose";
-import { seedAdminUser } from "../utils/seedAmin"; // adjust path if needed
+import { seedAdminUser } from "../utils/seedAmin";
 
 let isConnected = false;
 let seeded = false;
 
 export async function connectDB() {
-  if (isConnected) return;
+  console.log("🔄 connectDB() called");
+  console.log("MONGO_URI present?", !!process.env.MONGO_URI);
+
+  if (isConnected) {
+    console.log("✅ Already connected to Mongo");
+    return;
+  }
 
   if (!process.env.MONGO_URI) {
     console.error("❌ MONGO_URI is missing!");
@@ -13,7 +19,7 @@ export async function connectDB() {
   }
 
   try {
-    console.log("🔄 Connecting to MongoDB...");
+    console.log("🔌 Connecting to MongoDB...");
     await mongoose.connect(process.env.MONGO_URI, {
       serverSelectionTimeoutMS: 5000, // fail fast if cannot connect
     });
@@ -33,6 +39,6 @@ export async function connectDB() {
     }
   } catch (err) {
     console.error("❌ MongoDB connection error:", err);
-    throw err; // rethrow so Vercel logs it
+    throw err;
   }
 }
