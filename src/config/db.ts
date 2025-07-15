@@ -21,7 +21,7 @@ export async function connectDB() {
   try {
     console.log("🔌 Connecting to MongoDB...");
     await mongoose.connect(process.env.MONGO_URI, {
-      serverSelectionTimeoutMS: 5000, // fail fast if cannot connect
+      serverSelectionTimeoutMS: 3000, // fail fast if cannot connect
     });
 
     isConnected = true;
