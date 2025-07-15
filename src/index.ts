@@ -7,7 +7,7 @@ import path from "path";
 
 import authRoutes from "./routes/auth.routes";
 import propertyRoutes from "./routes/property.routes";
-import { connectDB } from "./config/db";  // ✅ import DB util
+import { connectDB } from "./config/db"; // ✅ DB util
 
 dotenv.config();
 
@@ -22,23 +22,42 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 
-app.use("/api/auth", authRoutes);
-app.use("/api/properties", propertyRoutes);
-app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
-app.get("/api/test", (req, res) => {
-  res.json({ ok: true, message: "Serverless is working ✅" });
+// ✅ Quick test route (does NOT depend on DB)
+app.get("/api/health", (req, res) => {
+  res.json({
+    status: "ok",
+    node_env: process.env.NODE_ENV || "undefined",
+    mongo_uri_present: !!process.env.MONGO_URI,
+    timestamp: new Date().toISOString(),
+  });
 });
 
+// ✅ Lazy DB connection middleware (only when needed)
+async function ensureDBConnection(req: express.Request, res: express.Response, next: express.NextFunction) {
+  try {
+    await connectDB(); // Will connect only once per cold start
+    next();
+  } catch (err) {
+    console.error("❌ DB connection failed:", err);
+    return res.status(500).json({ error: "Database connection failed" });
+  }
+}
 
+// ✅ Protect DB routes with connection check
+app.use("/api/auth", ensureDBConnection, authRoutes);
+app.use("/api/properties", ensureDBConnection, propertyRoutes);
+
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
+
+// ✅ Debug logs
 console.log("NODE_ENV:", process.env.NODE_ENV);
 console.log("MONGO_URI present?", !!process.env.MONGO_URI);
-
-connectDB().catch((err) => console.error("❌ DB connection error at startup:", err));
 
 // ✅ Local dev only
 if (process.env.NODE_ENV !== "production") {
   const PORT = process.env.PORT || 5000;
-  app.listen(PORT, () => console.log(`🚀 Local server at http://localhost:${PORT}`));
+  connectDB().catch((err) => console.error("❌ DB connection error at startup:", err));
+  app.listen(PORT, () => console.log(`🚀 Local server running at http://localhost:${PORT}`));
 }
 
 // ✅ Export for Vercel
