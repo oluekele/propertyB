@@ -25,6 +25,9 @@ app.use(cookieParser());
 app.use("/api/auth", authRoutes);
 app.use("/api/properties", propertyRoutes);
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
+app.get("/api/test", (req, res) => {
+  res.json({ ok: true, message: "Serverless is working ✅" });
+});
 
 
 console.log("NODE_ENV:", process.env.NODE_ENV);
