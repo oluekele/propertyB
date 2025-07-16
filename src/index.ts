@@ -1,5 +1,4 @@
 import express from "express";
-import serverless from "serverless-http";
 import cors from "cors";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
@@ -33,7 +32,11 @@ app.get("/api/health", (req, res) => {
 });
 
 // ✅ Lazy DB connection middleware (only when needed)
-async function ensureDBConnection(req: express.Request, res: express.Response, next: express.NextFunction) {
+async function ensureDBConnection(
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction
+) {
   try {
     await connectDB(); // Will connect only once per cold start
     next();
@@ -47,12 +50,14 @@ async function ensureDBConnection(req: express.Request, res: express.Response, n
 app.use("/api/auth", ensureDBConnection, authRoutes);
 app.use("/api/properties", ensureDBConnection, propertyRoutes);
 
+// ✅ Static uploads (if needed)
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 // ✅ Debug logs
 console.log("NODE_ENV:", process.env.NODE_ENV);
 console.log("MONGO_URI present?", !!process.env.MONGO_URI);
 
+// ✅ Local development only
 if (process.env.NODE_ENV !== "production") {
   const PORT = process.env.PORT || 5000;
   connectDB().catch((err) =>
@@ -63,5 +68,5 @@ if (process.env.NODE_ENV !== "production") {
   );
 }
 
-// ✅ For Vercel, export a default handler
-export default serverless(app);
+// ✅ For Vercel, just export the Express app directly
+export default app;

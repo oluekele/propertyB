@@ -3,9 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.handler = void 0;
 const express_1 = __importDefault(require("express"));
-const serverless_http_1 = __importDefault(require("serverless-http"));
 const cors_1 = __importDefault(require("cors"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
@@ -44,15 +42,16 @@ async function ensureDBConnection(req, res, next) {
 // ✅ Protect DB routes with connection check
 app.use("/api/auth", ensureDBConnection, auth_routes_1.default);
 app.use("/api/properties", ensureDBConnection, property_routes_1.default);
+// ✅ Static uploads (if needed)
 app.use("/uploads", express_1.default.static(path_1.default.join(__dirname, "../uploads")));
 // ✅ Debug logs
 console.log("NODE_ENV:", process.env.NODE_ENV);
 console.log("MONGO_URI present?", !!process.env.MONGO_URI);
-// ✅ Local dev only
+// ✅ Local development only
 if (process.env.NODE_ENV !== "production") {
     const PORT = process.env.PORT || 5000;
     (0, db_1.connectDB)().catch((err) => console.error("❌ DB connection error at startup:", err));
     app.listen(PORT, () => console.log(`🚀 Local server running at http://localhost:${PORT}`));
 }
-// ✅ Export for Vercel
-exports.handler = (0, serverless_http_1.default)(app);
+// ✅ For Vercel, just export the Express app directly
+exports.default = app;
