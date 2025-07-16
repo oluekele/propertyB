@@ -53,12 +53,15 @@ app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 console.log("NODE_ENV:", process.env.NODE_ENV);
 console.log("MONGO_URI present?", !!process.env.MONGO_URI);
 
-// ✅ Local dev only
 if (process.env.NODE_ENV !== "production") {
   const PORT = process.env.PORT || 5000;
-  connectDB().catch((err) => console.error("❌ DB connection error at startup:", err));
-  app.listen(PORT, () => console.log(`🚀 Local server running at http://localhost:${PORT}`));
+  connectDB().catch((err) =>
+    console.error("❌ DB connection error at startup:", err)
+  );
+  app.listen(PORT, () =>
+    console.log(`🚀 Local server running at http://localhost:${PORT}`)
+  );
 }
 
-// ✅ Export for Vercel
-export const handler = serverless(app);
+// ✅ For Vercel, export a default handler
+export default serverless(app);
