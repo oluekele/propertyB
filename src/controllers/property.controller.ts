@@ -29,25 +29,23 @@ export const getPropertyBySlug = async (req: Request, res:Response) => {
   }
 };
 
+import cloudinary from "../config/cloudinary";
+
 export const createProperty = async (req: AuthRequest, res: Response) => {
   try {
-    const { title, description, price, location, beds, baths, size, category } = req.body;
-
-    // Debug log incoming request
-    console.log("Incoming createProperty request:");
-    console.log("Body:", req.body);
-    console.log("File:", req.file);
+    const { title, description, price, location, beds, baths, size, category, image } = req.body;
 
     if (!title || !category) {
       return res.status(400).json({ message: "Title and category are required." });
     }
 
-    if (!req.file) {
+    if (!image) {
       return res.status(400).json({ message: "Image is required." });
     }
 
     const slug = slugify(title, { lower: true });
 
+    // Save property with cloudinary image URL
     const newProperty = new Property({
       title,
       slug,
@@ -58,7 +56,7 @@ export const createProperty = async (req: AuthRequest, res: Response) => {
       baths: Number(baths),
       size,
       category,
-      image: `/uploads/${req.file.filename}`,
+      image, // Directly save the Cloudinary URL
       createdBy: req.user?.id,
     });
 
@@ -72,6 +70,7 @@ export const createProperty = async (req: AuthRequest, res: Response) => {
     res.status(500).json({ message: "Create failed", error: err.message });
   }
 };
+
 
 
 
@@ -145,11 +144,6 @@ export const updateProperty = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
 
-    console.log("Incoming updateProperty request:");
-    console.log("Params:", req.params);
-    console.log("Body:", req.body);
-    console.log("File:", req.file);
-
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ message: "Invalid property ID" });
     }
@@ -165,10 +159,6 @@ export const updateProperty = async (req: AuthRequest, res: Response) => {
     if (updatedData.beds) updatedData.beds = Number(updatedData.beds);
     if (updatedData.baths) updatedData.baths = Number(updatedData.baths);
 
-    if (req.file) {
-      updatedData.image = `/uploads/${req.file.filename}`;
-    }
-
     const updated = await Property.findByIdAndUpdate(id, updatedData, { new: true });
 
     if (!updated) {
@@ -181,6 +171,7 @@ export const updateProperty = async (req: AuthRequest, res: Response) => {
     res.status(500).json({ message: "Update failed", error: err.message });
   }
 };
+
 
 export const deleteProperty = async (req: AuthRequest, res: Response) => {
   await Property.findByIdAndDelete(req.params.id);
