@@ -29,7 +29,6 @@ export const getPropertyBySlug = async (req: Request, res:Response) => {
   }
 };
 
-import cloudinary from "../config/cloudinary";
 
 export const createProperty = async (req: AuthRequest, res: Response) => {
   try {
